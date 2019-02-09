@@ -1,0 +1,6 @@
+*.o
+.depend
+*.blend[0-9]
+*.swp
+*.exe
+box
