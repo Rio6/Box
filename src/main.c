@@ -3,6 +3,8 @@
  * Date: 2017/05/21
  */
 
+#include <math.h>
+
 #include "SDL2/SDL.h"
 #include "game.h"
 #include "vector.h"
@@ -19,7 +21,8 @@ int main(int argc, char *argv[]) {
             .width = 80,
             .height = 20,
             .pos = {game.width / 2, game.height / 2},
-            .off = {0, 0.5}
+            .off = {35, 0},
+            .mass = 1
         },
         .gForce = .2,
         .fForce = 1
@@ -69,6 +72,10 @@ int main(int argc, char *argv[]) {
     SDL_SetRenderDrawColor(rend, 255, 221, 0, 255);
     SDL_Rect boxRect = {0, 0, game.box.width, game.box.height};
     SDL_RenderFillRect(rend, &boxRect);
+    SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);
+    SDL_Point off = {game.box.off.x + game.box.width / 2, game.box.off.y + game.box.height / 2};
+    SDL_RenderDrawLine(rend, off.x - 5, off.y - 5, off.x + 5, off.y + 5);
+    SDL_RenderDrawLine(rend, off.x + 5, off.y - 5, off.x - 5, off.y + 5);
     SDL_SetRenderTarget(rend, NULL);
 
     // loop
@@ -157,25 +164,47 @@ int main(int argc, char *argv[]) {
             }
         }
 
+
         // game logic
+        // reset acceleration
         vectorZero(&game.box.accl);
+        game.box.torq = 0;
+
+        // apply gravity
         vectorAdd(&game.box.accl, &game.grav);
+
+        // apply other forces
         for(int i = 0; i < MAX_FINGERS; i++) {
             Finger finger = game.fingers[i];
             if(finger.touch) {
-                Vector force = {(finger.pos.x - game.box.pos.x) / game.width, (finger.pos.y - game.box.pos.y) / game.width};
+
+                Vector off = game.box.off;
+                vectorRotate(&off, game.box.rot);
+                vectorAdd(&off, &game.box.pos);
+
+                Vector force = {(finger.pos.x - off.x) / game.width, (finger.pos.y - off.y) / game.width};
                 vectorScale(&force, game.fForce);
+
+                float mag = vectorMag(&force);
+                float angle = vectorAngle(&force) - (vectorAngle(&game.box.off) + game.box.rot);
+                float torq = mag * sin(angle) * vectorMag(&game.box.off);
+
+                game.box.torq += torq / (game.box.mass * (game.box.width * game.box.width + game.box.height * game.box.height) / 12);
+
                 vectorAdd(&game.box.accl, &force);
             }
         }
 
         vectorAdd(&game.box.vel, &game.box.accl);
         vectorAdd(&game.box.pos, &game.box.vel);
-        game.box.rot += game.box.torq;
+
+        game.box.rotV += game.box.torq;
+        game.box.rot += game.box.rotV;
 
         int ticked = SDL_GetTicks() - startTick;
-        if(SDL_TICKS_PASSED(ticked, 1000/60)) continue;
-        SDL_Delay(1000/60 - ticked);
+        if(SDL_TICKS_PASSED(ticked, 1000/FPS)) continue;
+        SDL_Delay(1000/FPS - ticked);
+
 
         // render
         SDL_SetRenderDrawColor(rend, 50, 50, 50, 255);
@@ -186,13 +215,17 @@ int main(int argc, char *argv[]) {
         boxRect.y = game.box.pos.y - game.box.height / 2;
         SDL_RenderCopyEx(rend, game.box.tex,
                 NULL, &boxRect,
-                game.box.rot, NULL, SDL_FLIP_NONE);
+                game.box.rot * 180 / 3.1415927,
+                NULL, SDL_FLIP_NONE);
 
         SDL_SetRenderDrawColor(rend, 255, 255, 255, 255);
         for(int i = 0; i < MAX_FINGERS; i++) {
             Finger finger = game.fingers[i];
             if(finger.touch) {
-                SDL_RenderDrawLine(rend, finger.pos.x, finger.pos.y, game.box.pos.x, game.box.pos.y);
+                Vector off = game.box.off;
+                vectorRotate(&off, game.box.rot);
+                vectorAdd(&off, &game.box.pos);
+                SDL_RenderDrawLine(rend, finger.pos.x, finger.pos.y, off.x, off.y);
             }
         }
 

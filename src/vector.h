@@ -10,5 +10,8 @@ Vector *vectorAdd(Vector*, Vector*);
 Vector *vectorSub(Vector*, Vector*);
 Vector *vectorScale(Vector*, float);
 Vector *vectorZero(Vector*);
+Vector *vectorRotate(Vector*, float);
+float vectorMag(Vector*);
+float vectorAngle(Vector*);
 
 #endif

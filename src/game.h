@@ -4,6 +4,7 @@
 #include "SDL2/SDL.h"
 #include "vector.h"
 
+#define FPS 60
 #define MAX_FINGERS 32
 
 typedef struct {
@@ -15,8 +16,11 @@ typedef struct {
     Vector vel;
     Vector accl;
     Vector off; // offset from center to apply finger force
-    float torq;
+
+    float torq; // using "torq" as angular acceleration
+    float rotV;
     float rot;
+    float mass;
 } Box;
 
 typedef struct {

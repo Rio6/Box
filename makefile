@@ -2,7 +2,7 @@ SRCDIR:=src
 BUILDDIR:=build
 
 CFLAGS+=-O2
-LIBS:=-lSDL2
+LIBS:=-lSDL2 -lm
 #INCLUDES:=-Iinclude
 SRCS:=$(wildcard $(SRCDIR)/*.c)
 HDRS:=$(wildcard $(SRCDIR)/*.h)
