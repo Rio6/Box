@@ -8,6 +8,7 @@
 #include "SDL2/SDL.h"
 #include "game.h"
 #include "vector.h"
+#include "collision.h"
 
 int main(int argc, char *argv[]) {
     // Log everything
@@ -20,11 +21,11 @@ int main(int argc, char *argv[]) {
         .box = {
             .width = 80,
             .height = 20,
-            .pos = {game.width / 2, game.height / 2},
+            .pos = {game.width / 2.0f, game.height / 2.0f},
             .off = {35, 0},
             .mass = 1
         },
-        .gForce = .2,
+        .gForce = .8,
         .fForce = 1
     };
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]) {
     SDL_Rect boxRect = {0, 0, game.box.width, game.box.height};
     SDL_RenderFillRect(rend, &boxRect);
     SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);
-    SDL_Point off = {game.box.off.x + game.box.width / 2, game.box.off.y + game.box.height / 2};
+    SDL_Point off = {game.box.off.x + game.box.width / 2.0f, game.box.off.y + game.box.height / 2.0f};
     SDL_RenderDrawLine(rend, off.x - 5, off.y - 5, off.x + 5, off.y + 5);
     SDL_RenderDrawLine(rend, off.x + 5, off.y - 5, off.x - 5, off.y + 5);
     SDL_SetRenderTarget(rend, NULL);
@@ -191,20 +192,66 @@ int main(int argc, char *argv[]) {
 
                 game.box.torq += torq / (game.box.mass * (game.box.width * game.box.width + game.box.height * game.box.height) / 12);
 
+                vectorScale(&force, 1 / game.box.mass);
                 vectorAdd(&game.box.accl, &force);
             }
         }
 
+        // collision
+        for(Direction dir = UP; dir <= RIGHT; dir++) {
+            Vector closest = collideBoxWall(&game.box.pos, game.box.width, game.box.height, game.box.rot, dir);
+
+            float dist;
+            switch(dir) {
+                case UP:
+                    dist = closest.y;
+                    break;
+                case LEFT:
+                    dist = closest.x;
+                    break;
+                case DOWN:
+                    dist = game.height - closest.y;
+                    break;
+                case RIGHT:
+                    dist = game.width - closest.x;
+                    break;
+            }
+
+            if(dist < 0) {
+                game.box.rotV *= -.8;
+                switch(dir) {
+                    case LEFT:
+                        if(game.box.vel.x < 0)
+                            game.box.vel.x *= -.8;
+                        break;
+                    case RIGHT:
+                        if(game.box.vel.x > 0)
+                            game.box.vel.x *= -.8;
+                        break;
+                    case UP:
+                        if(game.box.vel.y < 0)
+                            game.box.vel.y *= -.8;
+                        break;
+                    case DOWN:
+                        if(game.box.vel.y > 0)
+                            game.box.vel.y *= -.8;
+                        break;
+                }
+            }
+        }
+
+        // calculate velocity and position
         vectorAdd(&game.box.vel, &game.box.accl);
         vectorAdd(&game.box.pos, &game.box.vel);
 
+        // and angular speed and rotation
         game.box.rotV += game.box.torq;
         game.box.rot += game.box.rotV;
 
+        // frame cap
         int ticked = SDL_GetTicks() - startTick;
         if(SDL_TICKS_PASSED(ticked, 1000/FPS)) continue;
         SDL_Delay(1000/FPS - ticked);
-
 
         // render
         SDL_SetRenderDrawColor(rend, 50, 50, 50, 255);
@@ -215,7 +262,7 @@ int main(int argc, char *argv[]) {
         boxRect.y = game.box.pos.y - game.box.height / 2;
         SDL_RenderCopyEx(rend, game.box.tex,
                 NULL, &boxRect,
-                game.box.rot * 180 / 3.1415927,
+                game.box.rot * 180 / M_PI,
                 NULL, SDL_FLIP_NONE);
 
         SDL_SetRenderDrawColor(rend, 255, 255, 255, 255);

@@ -6,7 +6,7 @@ LIBS:=-lSDL2 -lm
 #INCLUDES:=-Iinclude
 SRCS:=$(wildcard $(SRCDIR)/*.c)
 HDRS:=$(wildcard $(SRCDIR)/*.h)
-OBJS:= $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
+OBJS:= $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRCS))
 TGT:=box
 
 all: $(BUILDDIR) $(TGT)
@@ -14,7 +14,7 @@ all: $(BUILDDIR) $(TGT)
 $(TGT): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(TGT)
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILDDIR):
