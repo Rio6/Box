@@ -5,7 +5,7 @@
 
 #include "SDL2/SDL.h"
 
-Vector collideBoxWall(Vector *pos, float boxW, float boxH, float rot, Direction dir) {
+Collision collideBoxWall(Vector *pos, float boxW, float boxH, float rot, float wallW, float wallH, Direction dir) {
 
     int quad = ((int) (-rot / (M_PI/2)) - dir) % 4;
     if(quad < 0) quad += 4;
@@ -33,5 +33,31 @@ Vector collideBoxWall(Vector *pos, float boxW, float boxH, float rot, Direction 
     vectorRotate(&closest, rot);
     vectorAdd(&closest, pos);
 
-    return closest;
+    float dist;
+    Vector norm = {0, 0};
+    switch(dir) {
+        case UP:
+            dist = closest.y;
+            norm.y = 1;
+            break;
+        case LEFT:
+            dist = closest.x;
+            norm.x = 1;
+            break;
+        case DOWN:
+            dist = wallH - closest.y;
+            norm.y = -1;
+            break;
+        case RIGHT:
+            dist = wallW - closest.x;
+            norm.x = -1;
+            break;
+    }
+
+    Collision coll = {
+        .pos = closest,
+        .norm = norm,
+        .dist = dist
+    };
+    return coll;
 }

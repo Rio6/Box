@@ -10,6 +10,20 @@
 #include "vector.h"
 #include "collision.h"
 
+void applyForce(Box *box, Vector* pos, Vector* force) {
+    Vector relPos = *pos;
+    vectorSub(&relPos, &box->pos);
+
+    float mag = vectorMag(force);
+    float angle = vectorAngle(force) - (vectorAngle(&relPos));
+    float torq = mag * sin(angle) * vectorMag(&relPos);
+
+    box->torq += torq / (box->mass * (box->width * box->width + box->height * box->height) / 12);
+
+    vectorScale(force, (1 - sin(angle)) / box->mass);
+    vectorAdd(&box->accl, force);
+}
+
 int main(int argc, char *argv[]) {
     // Log everything
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
@@ -165,7 +179,6 @@ int main(int argc, char *argv[]) {
             }
         }
 
-
         // game logic
         // reset acceleration
         vectorZero(&game.box.accl);
@@ -179,64 +192,21 @@ int main(int argc, char *argv[]) {
             Finger finger = game.fingers[i];
             if(finger.touch) {
 
-                Vector off = game.box.off;
-                vectorRotate(&off, game.box.rot);
-                vectorAdd(&off, &game.box.pos);
+                Vector pos = game.box.off;
+                vectorRotate(&pos, game.box.rot);
+                vectorAdd(&pos, &game.box.pos);
 
-                Vector force = {(finger.pos.x - off.x) / game.width, (finger.pos.y - off.y) / game.width};
+                Vector force = {(finger.pos.x - pos.x) / game.width, (finger.pos.y - pos.y) / game.width};
                 vectorScale(&force, game.fForce);
 
-                float mag = vectorMag(&force);
-                float angle = vectorAngle(&force) - (vectorAngle(&game.box.off) + game.box.rot);
-                float torq = mag * sin(angle) * vectorMag(&game.box.off);
-
-                game.box.torq += torq / (game.box.mass * (game.box.width * game.box.width + game.box.height * game.box.height) / 12);
-
-                vectorScale(&force, 1 / game.box.mass);
-                vectorAdd(&game.box.accl, &force);
+                applyForce(&game.box, &pos, &force);
             }
         }
 
         // collision
         for(Direction dir = UP; dir <= RIGHT; dir++) {
-            Vector closest = collideBoxWall(&game.box.pos, game.box.width, game.box.height, game.box.rot, dir);
-
-            float dist;
-            switch(dir) {
-                case UP:
-                    dist = closest.y;
-                    break;
-                case LEFT:
-                    dist = closest.x;
-                    break;
-                case DOWN:
-                    dist = game.height - closest.y;
-                    break;
-                case RIGHT:
-                    dist = game.width - closest.x;
-                    break;
-            }
-
-            if(dist < 0) {
-                game.box.rotV *= -.8;
-                switch(dir) {
-                    case LEFT:
-                        if(game.box.vel.x < 0)
-                            game.box.vel.x *= -.8;
-                        break;
-                    case RIGHT:
-                        if(game.box.vel.x > 0)
-                            game.box.vel.x *= -.8;
-                        break;
-                    case UP:
-                        if(game.box.vel.y < 0)
-                            game.box.vel.y *= -.8;
-                        break;
-                    case DOWN:
-                        if(game.box.vel.y > 0)
-                            game.box.vel.y *= -.8;
-                        break;
-                }
+            Collision coll = collideBoxWall(&game.box.pos, game.box.width, game.box.height, game.box.rot, game.width, game.height, dir);
+            if(coll.dist < 0) {
             }
         }
 
@@ -245,8 +215,8 @@ int main(int argc, char *argv[]) {
         vectorAdd(&game.box.pos, &game.box.vel);
 
         // and angular speed and rotation
-        game.box.rotV += game.box.torq;
-        game.box.rot += game.box.rotV;
+        game.box.angV += game.box.torq;
+        game.box.rot += game.box.angV;
 
         // frame cap
         int ticked = SDL_GetTicks() - startTick;

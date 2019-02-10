@@ -10,6 +10,12 @@ typedef enum {
     RIGHT
 } Direction;
 
-Vector collideBoxWall(Vector *pos, float boxW, float boxH, float rot, Direction dir);
+typedef struct {
+    Vector pos;
+    Vector norm;
+    float dist;
+} Collision;
+
+Collision collideBoxWall(Vector *pos, float boxW, float boxH, float rot, float wallW, float wallH, Direction dir);
 
 #endif

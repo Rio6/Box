@@ -18,7 +18,7 @@ typedef struct {
     Vector off; // offset from center to apply finger force
 
     float torq; // using "torq" as angular acceleration
-    float rotV;
+    float angV;
     float rot;
     float mass;
 } Box;
