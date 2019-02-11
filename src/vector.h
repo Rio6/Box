@@ -54,6 +54,13 @@ inline float vectorAngle(Vector *v) {
     return atan2(v->y, v->x);
 }
 
+inline Vector *vectorNorm(Vector *v) {
+    float mag = vectorMag(v);
+    v->x /= mag;
+    v->y /= mag;
+    return v;
+}
+
 inline float vectorDot(Vector *a, Vector* b) {
     return a->x * b->x + a->y * b->y;
 }

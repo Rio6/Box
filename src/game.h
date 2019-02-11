@@ -6,6 +6,7 @@
 
 #define FPS 60
 #define MAX_FINGERS 32
+#define DEBUG
 
 typedef struct {
     int width;

@@ -5,11 +5,15 @@
 
 Collision collideBoxWall(Vector *pos, float boxW, float boxH, float rot, float wallW, float wallH, Direction dir) {
 
-    int quad = ((int) (-rot / (M_PI/2)) - dir) % 4;
+    // find which quadrant (in local coordinate) the wall is
+    int quad = (int) (-rot / (M_PI/2)) - dir;
+    // need to add one when rotation is negative to get correct value
+    if(rot < 0) quad += 1;
+    quad %= 4;
     if(quad < 0) quad += 4;
 
     Vector closest = {0, 0};
-    if(fmod(-rot, (M_PI/2)) == 0) {
+    if(fmod(rot, (M_PI/2)) == 0) {
         // two corners with same distance
         switch(quad) {
             case 0:

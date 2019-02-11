@@ -119,6 +119,13 @@ int main(int argc, char *argv[]) {
                         case SDLK_RIGHT:
                             game.grav.x -= game.gForce;
                             break;
+#ifdef DEBUG
+                        case SDLK_f:
+                            game.box.vel.x = 0;
+                            game.box.vel.y = 0;
+                            game.box.angV = 0;
+                            break;
+#endif
                     }
                     break;
                 case SDL_JOYAXISMOTION:
@@ -201,18 +208,19 @@ int main(int argc, char *argv[]) {
         for(Direction dir = UP; dir <= RIGHT; dir++) {
             Collision coll = collideBoxWall(&game.box.pos, game.box.width, game.box.height, game.box.rot, game.width, game.height, dir);
             if(coll.dist < 0) {
-
                 // Impulse
                 Vector off = coll.pos;
                 vectorSub(&off, &game.box.pos);
-                Vector vel = {-game.box.angV * off.y, game.box.angV * off.x};
-                vectorAdd(&vel, &game.box.vel);
+                Vector vel = {
+                    game.box.vel.x - game.box.angV * off.y,
+                    game.box.vel.y + game.box.angV * off.x
+                };
 
                 float contSpeed = vectorDot(&vel, &coll.norm);
                 if(contSpeed < 0) {
-                    float e = 0.2f;
                     float r = vectorCross(&off, &coll.norm);
-                    float f = -(1.0f + e) * contSpeed / (1 / game.box.mass + r * r);
+                    float massSum = 1 / game.box.mass + r * r;
+                    float f = -(2.0f) * contSpeed / massSum;
 
                     Vector impulse = coll.norm;
                     vectorScale(&impulse, f);
@@ -251,6 +259,21 @@ int main(int argc, char *argv[]) {
                 NULL, &boxRect,
                 game.box.rot * 180 / M_PI,
                 NULL, SDL_FLIP_NONE);
+
+#ifdef DEBUG
+        float minDist = fmax(game.width, game.height);
+        Vector drawPos;
+        for(Direction dir = UP; dir <= RIGHT; dir++) {
+            Collision coll = collideBoxWall(&game.box.pos, game.box.width, game.box.height, game.box.rot, game.width, game.height, dir);
+            if(coll.dist < minDist) {
+                minDist = coll.dist;
+                drawPos = coll.pos;
+            }
+        }
+        SDL_SetRenderDrawColor(rend, 0, 0, 200, 255);
+        SDL_RenderDrawLine(rend, drawPos.x - 5, drawPos.y - 5, drawPos.x + 5, drawPos.y + 5);
+        SDL_RenderDrawLine(rend, drawPos.x + 5, drawPos.y - 5, drawPos.x - 5, drawPos.y + 5);
+#endif
 
         SDL_SetRenderDrawColor(rend, 255, 255, 255, 255);
         for(int i = 0; i < MAX_FINGERS; i++) {
