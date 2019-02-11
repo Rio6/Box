@@ -10,20 +10,6 @@
 #include "vector.h"
 #include "collision.h"
 
-void applyForce(Box *box, Vector* pos, Vector* force) {
-    Vector relPos = *pos;
-    vectorSub(&relPos, &box->pos);
-
-    float mag = vectorMag(force);
-    float angle = vectorAngle(force) - (vectorAngle(&relPos));
-    float torq = mag * sin(angle) * vectorMag(&relPos);
-
-    box->torq += torq / (box->mass * (box->width * box->width + box->height * box->height) / 12);
-
-    vectorScale(force, (1 - sin(angle)) / box->mass);
-    vectorAdd(&box->accl, force);
-}
-
 int main(int argc, char *argv[]) {
     // Log everything
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
@@ -37,10 +23,12 @@ int main(int argc, char *argv[]) {
             .height = 20,
             .pos = {game.width / 2.0f, game.height / 2.0f},
             .off = {35, 0},
-            .mass = 1
+            .mass = 1,
+            .inertia = game.box.mass * (game.box.width * game.box.width + game.box.height * game.box.height) / 12
         },
-        .gForce = .8,
-        .fForce = 1
+        .gForce = .6,
+        .fForce = 1.2,
+        .airFric = 1
     };
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0) {
@@ -180,12 +168,8 @@ int main(int argc, char *argv[]) {
         }
 
         // game logic
-        // reset acceleration
-        vectorZero(&game.box.accl);
-        game.box.torq = 0;
-
         // apply gravity
-        vectorAdd(&game.box.accl, &game.grav);
+        vectorAdd(&game.box.force, &game.grav);
 
         // apply other forces
         for(int i = 0; i < MAX_FINGERS; i++) {
@@ -203,20 +187,53 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        // calculate velocity and position
+        vectorAdd(&game.box.vel, vectorScale(&game.box.force, 1 / game.box.mass));
+        vectorScale(&game.box.vel, game.airFric);
+        vectorAdd(&game.box.pos, &game.box.vel);
+
+        // and angular speed and rotation
+        game.box.angV += game.box.torq / game.box.inertia;
+        game.box.angV *= game.airFric;
+        game.box.rot += game.box.angV;
+
         // collision
         for(Direction dir = UP; dir <= RIGHT; dir++) {
             Collision coll = collideBoxWall(&game.box.pos, game.box.width, game.box.height, game.box.rot, game.width, game.height, dir);
             if(coll.dist < 0) {
+
+                // Impulse
+                Vector off = coll.pos;
+                vectorSub(&off, &game.box.pos);
+                Vector vel = {-game.box.angV * off.y, game.box.angV * off.x};
+                vectorAdd(&vel, &game.box.vel);
+
+                float contSpeed = vectorDot(&vel, &coll.norm);
+                if(contSpeed < 0) {
+                    float e = 0.2f;
+                    float r = vectorCross(&off, &coll.norm);
+                    float f = -(1.0f + e) * contSpeed / (1 / game.box.mass + r * r);
+
+                    Vector impulse = coll.norm;
+                    vectorScale(&impulse, f);
+
+                    Vector linear = impulse;
+                    vectorScale(&linear, 1 / game.box.mass);
+                    vectorAdd(&game.box.vel, &linear);
+
+                    game.box.angV += vectorCross(&off, &impulse) / game.box.inertia;
+                }
+
+                // Fix position
+                Vector fix = coll.norm;
+                vectorScale(&fix, -coll.dist);
+                vectorAdd(&game.box.pos, &fix);
             }
         }
 
-        // calculate velocity and position
-        vectorAdd(&game.box.vel, &game.box.accl);
-        vectorAdd(&game.box.pos, &game.box.vel);
-
-        // and angular speed and rotation
-        game.box.angV += game.box.torq;
-        game.box.rot += game.box.angV;
+        // reset forces
+        vectorZero(&game.box.force);
+        game.box.torq = 0;
 
         // frame cap
         int ticked = SDL_GetTicks() - startTick;

@@ -21,6 +21,12 @@ inline Vector *vectorSub(Vector* a, Vector* b) {
     return a;
 }
 
+inline Vector *vectorMult(Vector* a, Vector* b) {
+    a->x *= b->x;
+    a->y *= b->y;
+    return a;
+}
+
 inline Vector *vectorScale(Vector* a, float b) {
     a->x *= b;
     a->y *= b;
@@ -53,7 +59,7 @@ inline float vectorDot(Vector *a, Vector* b) {
 }
 
 inline float vectorCross(Vector *a, Vector *b) {
-    return a->x * b->y - b->x * a->y;
+    return a->x * b->y - a->y * b->x;
 }
 
 #endif

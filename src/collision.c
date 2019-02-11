@@ -3,31 +3,47 @@
 #include "collision.h"
 #include "vector.h"
 
-#include "SDL2/SDL.h"
-
 Collision collideBoxWall(Vector *pos, float boxW, float boxH, float rot, float wallW, float wallH, Direction dir) {
 
     int quad = ((int) (-rot / (M_PI/2)) - dir) % 4;
     if(quad < 0) quad += 4;
 
-    Vector closest;
-    switch(quad) {
-        case 0:
-            closest.x = -boxW / 2.0f;
-            closest.y = -boxH / 2.0f;
-            break;
-        case 1:
-            closest.x = boxW / 2.0f;
-            closest.y = -boxH / 2.0f;
-            break;
-        case 2:
-            closest.x = boxW / 2.0f;
-            closest.y = boxH / 2.0f;
-            break;
-        case 3:
-            closest.x = -boxW / 2.0f;
-            closest.y = boxH / 2.0f;
-            break;
+    Vector closest = {0, 0};
+    if(fmod(-rot, (M_PI/2)) == 0) {
+        // two corners with same distance
+        switch(quad) {
+            case 0:
+                closest.y = -boxH / 2.0f;
+                break;
+            case 1:
+                closest.x = boxW / 2.0f;
+                break;
+            case 2:
+                closest.y = boxH / 2.0f;
+                break;
+            case 3:
+                closest.x = -boxW / 2.0f;
+                break;
+        }
+    } else {
+        switch(quad) {
+            case 0:
+                closest.x = -boxW / 2.0f;
+                closest.y = -boxH / 2.0f;
+                break;
+            case 1:
+                closest.x = boxW / 2.0f;
+                closest.y = -boxH / 2.0f;
+                break;
+            case 2:
+                closest.x = boxW / 2.0f;
+                closest.y = boxH / 2.0f;
+                break;
+            case 3:
+                closest.x = -boxW / 2.0f;
+                closest.y = boxH / 2.0f;
+                break;
+        }
     }
 
     vectorRotate(&closest, rot);

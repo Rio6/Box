@@ -14,13 +14,14 @@ typedef struct {
 
     Vector pos;
     Vector vel;
-    Vector accl;
+    Vector force;
     Vector off; // offset from center to apply finger force
 
     float torq; // using "torq" as angular acceleration
     float angV;
     float rot;
     float mass;
+    float inertia;
 } Box;
 
 typedef struct {
@@ -40,6 +41,20 @@ typedef struct {
 
     float gForce;
     float fForce;
+    float airFric;
 } Game;
+
+void applyForce(Box *box, Vector* pos, Vector* force) {
+    Vector relPos = *pos;
+    vectorSub(&relPos, &box->pos);
+
+    float mag = vectorMag(force);
+    float angle = vectorAngle(force) - (vectorAngle(&relPos));
+    float torq = mag * sin(angle) * vectorMag(&relPos);
+    if(abs(torq) < .00001f) torq = 0;
+
+    box->torq += torq;
+    vectorAdd(&box->force, force);
+}
 
 #endif
