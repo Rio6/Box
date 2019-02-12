@@ -3,4 +3,5 @@
 *.blend[0-9]
 *.swp
 *.exe
+build
 box
