@@ -279,7 +279,7 @@ int main(int argc, char *argv[]) {
         SDL_Delay(1000/FPS - ticked);
 
         // render
-        SDL_SetRenderDrawColor(rend, 50, 50, 50, 255);
+        SDL_SetRenderDrawColor(rend, 32, 32, 32, 255);
         SDL_Rect rect = {0, 0, game.width, game.height};
         SDL_RenderFillRect(rend, &rect);
 
