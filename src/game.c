@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
             .width = 80,
             .height = 20,
             .pos = {game.width / 2.0f, game.height / 2.0f},
-            .off = {35, 0},
+            .off = {10, 0},
             .mass = 1,
             .inertia = game.box.mass * (game.box.width * game.box.width + game.box.height * game.box.height) / 12
         },
@@ -144,13 +144,14 @@ int main(int argc, char *argv[]) {
                     break;
                 case SDL_JOYAXISMOTION:
                     {
-                        int value = eve.jaxis.value / 32767;
-                        if(eve.jaxis.axis == 0) {
-                            // x axis
-                            game.grav.x += value * game.gForce;
-                        } else {
-                            // y axis
-                            game.grav.y += value * game.gForce;
+                        float value = (float) eve.jaxis.value / 32767; // normalize the value
+                        switch(eve.jaxis.axis) {
+                            case 0: // x axis
+                                game.grav.x = value * game.gForce;
+                                break;
+                            case 1: // y axis
+                                game.grav.y = value * game.gForce;
+                                break;
                         }
                         break;
                     }
