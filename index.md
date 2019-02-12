@@ -6,4 +6,4 @@ A box that floats around. Use your fingers to move it. Tilting device changes gr
 - [All downloads](https://github.com/Rio6/Box/releases)
 
 ### Screenshot
-![](https://github.com/Rio6/Runbot/raw/gh-pages/images/screenshot_0.png)
+![](https://github.com/Rio6/Box/raw/gh-pages/images/screenshot_0.png)
