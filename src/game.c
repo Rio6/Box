@@ -158,16 +158,21 @@ int main(int argc, char *argv[]) {
                 case SDL_FINGERMOTION:
                     {
                         SDL_FingerID id = eve.tfinger.fingerId;
-                        SDL_Log("Finger id %d", id);
-                        if(id > MAX_FINGERS) break;
-                        game.fingers[id].pos.x = eve.tfinger.x * game.width;
-                        game.fingers[id].pos.y = eve.tfinger.y * game.height;
-                        game.fingers[id].touch = 1;
+                        Finger *finger = findFingerById(id, game.fingers, MAX_FINGERS);
+                        if(!finger) finger = findFreeFinger(game.fingers, MAX_FINGERS);
+                        if(finger) {
+                            finger->pos.x = eve.tfinger.x * game.width;
+                            finger->pos.y = eve.tfinger.y * game.height;
+                            finger->touch = 1;
+                        }
                     }
                     break;
                 case SDL_FINGERUP:
-                    game.fingers[eve.tfinger.fingerId].touch = 0;
-                    break;
+                    {
+                        Finger *finger = findFingerById(eve.tfinger.fingerId, game.fingers, MAX_FINGERS);
+                        if(finger) finger->touch = 0;
+                        break;
+                    }
                 case SDL_QUIT:
                     game.running = 0;
                     break;
@@ -302,4 +307,35 @@ int main(int argc, char *argv[]) {
     SDL_Quit();
 
     return 0;
+}
+
+void applyForce(Box *box, Vector* pos, Vector* force) {
+    Vector relPos = *pos;
+    vectorSub(&relPos, &box->pos);
+
+    float mag = vectorMag(force);
+    float angle = vectorAngle(force) - (vectorAngle(&relPos));
+    float torq = mag * sin(angle) * vectorMag(&relPos);
+    if(fabsf(torq) < .00001f) torq = 0;
+
+    box->torq += torq;
+    vectorAdd(&box->force, force);
+}
+
+Finger *findFingerById(SDL_FingerID id, Finger *fingers, int fingers_c) {
+    for(int i = 0; i < fingers_c; i++) {
+        if(fingers[i].id == id) {
+            return &fingers[i];
+        }
+    }
+    return NULL;
+}
+
+Finger *findFreeFinger(Finger *fingers, int fingers_c) {
+    for(int i = 0; i < fingers_c; i++) {
+        if(!fingers[i].touch) {
+            return &fingers[i];
+        }
+    }
+    return NULL;
 }

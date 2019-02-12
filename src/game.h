@@ -1,12 +1,12 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "SDL.h"
-#include "vector.h"
-
 #define FPS 60
 #define MAX_FINGERS 32
 //#define DEBUG
+
+#include "SDL.h"
+#include "vector.h"
 
 typedef struct {
     int width;
@@ -26,6 +26,7 @@ typedef struct {
 } Box;
 
 typedef struct {
+    SDL_FingerID id;
     Vector pos;
     int touch;
 } Finger;
@@ -45,17 +46,8 @@ typedef struct {
     float airFric;
 } Game;
 
-void applyForce(Box *box, Vector* pos, Vector* force) {
-    Vector relPos = *pos;
-    vectorSub(&relPos, &box->pos);
-
-    float mag = vectorMag(force);
-    float angle = vectorAngle(force) - (vectorAngle(&relPos));
-    float torq = mag * sin(angle) * vectorMag(&relPos);
-    if(abs(torq) < .00001f) torq = 0;
-
-    box->torq += torq;
-    vectorAdd(&box->force, force);
-}
+void applyForce(Box *box, Vector* pos, Vector* force);
+Finger *findFingerById(SDL_FingerID id, Finger *fingers, int fingers_c);
+Finger *findFreeFinger(Finger *fingers, int fingers_c);
 
 #endif
