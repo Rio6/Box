@@ -10,7 +10,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(SDL_PATH)/include
 
 # Add your application source files here...
 LOCAL_SRC_FILES :=  $(wildcard $(LOCAL_PATH)/src/*.c)
-LOCAL_SRC_FILES :=  $(LOCAL_PATH)/src/vector.h
 LOCAL_SRC_FILES := $(LOCAL_SRC_FILES:$(LOCAL_PATH)/%=%)
 
 LOCAL_SHARED_LIBRARIES := SDL2
