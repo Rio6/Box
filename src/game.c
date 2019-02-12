@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
             .width = 80,
             .height = 20,
             .pos = {game.width / 2.0f, game.height / 2.0f},
-            .off = {10, 0},
+            .off = {5, 0},
             .mass = 1,
             .inertia = game.box.mass * (game.box.width * game.box.width + game.box.height * game.box.height) / 12
         },
