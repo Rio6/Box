@@ -3,7 +3,7 @@ BUILDDIR:=build
 
 CFLAGS+=-O2
 LIBS:=-lSDL2 -lm
-#INCLUDES:=-Iinclude
+INCLUDES:=-I/usr/include/SDL2/
 SRCS:=$(wildcard $(SRCDIR)/*.c)
 HDRS:=$(wildcard $(SRCDIR)/*.h)
 OBJS:= $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRCS))
@@ -26,6 +26,6 @@ clean:
 depend: .depend
 
 .depend: $(SRCS) $(HDRS)
-	$(CC) $(CFLAGS) -MM $^ | sed 's|[a-zA-Z0-9_-]*\.o|$(BUILDDIR)/&|' > .depend
+	$(CC) $(CFLAGS) $(INCLUDES) -MM $^ | sed 's|[a-zA-Z0-9_-]*\.o|$(BUILDDIR)/&|' > .depend
 
 include .depend
