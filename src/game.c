@@ -182,8 +182,10 @@ int main(int argc, char *argv[]) {
                     {
                         SDL_FingerID id = eve.tfinger.fingerId;
                         Finger *finger = findFingerById(id, game.fingers, MAX_FINGERS);
+
                         if(!finger) finger = findFreeFinger(game.fingers, MAX_FINGERS);
                         if(finger) {
+                            finger->id = id;
                             finger->pos.x = eve.tfinger.x * game.width;
                             finger->pos.y = eve.tfinger.y * game.height;
                             finger->touch = 1;
