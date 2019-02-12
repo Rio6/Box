@@ -39,11 +39,19 @@ int main(int argc, char *argv[]) {
 
     // display size
     SDL_DisplayMode display;
+
+#if defined(__ANDROID__) || defined(__IPHONEOS__)
+    // only scale window to screen size on android
     if(SDL_GetDesktopDisplayMode(0, &display) != 0) {
         // failed
+#endif
+
         display.w = game.width;
         display.h = game.height;
+
+#if defined(__ANDROID__) || defined(__IPHONEOS__)
     }
+#endif
 
     SDL_Window *win = SDL_CreateWindow("Box",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
