@@ -1,0 +1,3 @@
+[submodule "jni/Box"]
+	path = jni/Box
+	url = https://github.com/Rio6/Box
