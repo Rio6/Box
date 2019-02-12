@@ -219,8 +219,8 @@ int main(int argc, char *argv[]) {
                 float contSpeed = vectorDot(&vel, &coll.norm);
                 if(contSpeed < 0) {
                     float r = vectorCross(&off, &coll.norm);
-                    float massSum = 1 / game.box.mass + r * r;
-                    float f = -(2.0f) * contSpeed / massSum;
+                    float massSum = 1 / game.box.mass + r * r / game.box.inertia;
+                    float f = -(1.6f) * contSpeed / massSum;
 
                     Vector impulse = coll.norm;
                     vectorScale(&impulse, f);
