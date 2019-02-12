@@ -31,22 +31,23 @@ int main(int argc, char *argv[]) {
     // log everything
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
-    // display size
-    SDL_DisplayMode display;
-    if(SDL_GetCurrentDisplayMode(0, &display) == 0) {
-        game.width = display.w;
-        game.height = display.h;
-    }
-
     // init and create things
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to init: %s", SDL_GetError());
         return 1;
     }
 
+    // display size
+    SDL_DisplayMode display;
+    if(SDL_GetDesktopDisplayMode(0, &display) != 0) {
+        // failed
+        display.w = game.width;
+        display.h = game.height;
+    }
+
     SDL_Window *win = SDL_CreateWindow("Box",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            game.width, game.height, SDL_WINDOW_SHOWN);
+            display.w, display.h, SDL_WINDOW_SHOWN);
     if(!win) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create window: %s", SDL_GetError());
         return 1;
@@ -57,6 +58,12 @@ int main(int argc, char *argv[]) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create renderer: %s", SDL_GetError());
         return 1;
     }
+
+    // configure SDL
+    SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "1");
+    SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
+    SDL_RenderSetScale(rend, (float) display.w / game.width, (float) display.h / game.height);
+    SDL_EnableScreenSaver();
 
     // joystick (and device accelerator)
     int jsticks_c = SDL_NumJoysticks();
@@ -70,12 +77,6 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-
-    // configure SDL
-    SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "1");
-    SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
-    SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
-    SDL_RenderSetLogicalSize(rend, game.width, game.height);
 
     // Box texture
     game.box.tex = SDL_CreateTexture(rend,
@@ -128,6 +129,9 @@ int main(int argc, char *argv[]) {
                             break;
                         case SDLK_RIGHT:
                             game.grav.x -= game.gForce;
+                            break;
+                        case SDLK_AC_BACK:
+                            game.running = 0;
                             break;
 #ifdef DEBUG
                         case SDLK_f:
