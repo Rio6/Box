@@ -3,6 +3,7 @@ BUILDDIR:=build
 
 CFLAGS+=-O2
 LIBS:=-lSDL2 -lm
+WINLIBS:=-static-libgcc -Wl,-Bstatic -lpthread -lmingw32 -lSDL2main $(LIBS) -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lversion -lsetupapi -mwindows
 INCLUDES:=-I/usr/include/SDL2/
 SRCS:=$(wildcard $(SRCDIR)/*.c)
 HDRS:=$(wildcard $(SRCDIR)/*.h)
@@ -11,9 +12,9 @@ TGT:=box
 
 all: $(BUILDDIR) $(TGT)
 win32: winicon32
-	$(MAKE) CC=i686-w64-mingw32-gcc LIBS="-static-libgcc -Wl,-Bstatic -lpthread -Wl,-Bdynamic -lmingw32 -lSDL2main $(LIBS) -mwindows" TGT="$(TGT).exe" OBJS="$(OBJS) $(BUILDDIR)/icon.o" all
+	$(MAKE) CC=i686-w64-mingw32-gcc LIBS="$(WINLIBS)" TGT="$(TGT).exe" OBJS="$(OBJS) $(BUILDDIR)/icon.o" all
 win64: winicon64
-	$(MAKE) CC=x86_64-w64-mingw32-gcc LIBS="-static-libgcc -Wl,-Bstatic -lpthread -Wl,-Bdynamic -lmingw32 -lSDL2main $(LIBS) -mwindows" TGT="$(TGT).exe" OBJS="$(OBJS) $(BUILDDIR)/icon.o" all
+	$(MAKE) CC=x86_64-w64-mingw32-gcc LIBS="$(WINLIBS)" TGT="$(TGT).exe" OBJS="$(OBJS) $(BUILDDIR)/icon.o" all
 
 winicon32: $(BUILDDIR)/icon.rc
 	i686-w64-mingw32-windres -i $(BUILDDIR)/icon.rc -O coff -o $(BUILDDIR)/icon.o
