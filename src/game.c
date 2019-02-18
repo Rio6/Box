@@ -69,7 +69,6 @@ int main(int argc, char *argv[]) {
 
     // configure SDL
     SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "1");
-    SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
     SDL_RenderSetScale(rend, (float) display.w / game.width, (float) display.h / game.height);
     SDL_EnableScreenSaver();
 
@@ -163,6 +162,7 @@ int main(int argc, char *argv[]) {
                         }
                         break;
                     }
+#if !(defined(__ANDROID__) || defined(__IPHONEOS__))
                 case SDL_MOUSEBUTTONDOWN:
                     game.fingers[0].pos.x = eve.button.x;
                     game.fingers[0].pos.y = eve.button.y;
@@ -177,6 +177,7 @@ int main(int argc, char *argv[]) {
                 case SDL_MOUSEBUTTONUP:
                     game.fingers[0].touch = 0;
                     break;
+#endif
                 case SDL_FINGERDOWN:
                 case SDL_FINGERMOTION:
                     {
