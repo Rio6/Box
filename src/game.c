@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
                         case SDLK_AC_BACK:
                             game.running = 0;
                             break;
-#ifdef DEBUG
+#if(DEBUG)
                         case SDLK_f:
                             game.box.vel.x = 0;
                             game.box.vel.y = 0;
@@ -290,7 +290,7 @@ int main(int argc, char *argv[]) {
                 game.box.rot * 180 / M_PI,
                 NULL, SDL_FLIP_NONE);
 
-#ifdef DEBUG
+#if (DEBUG)
         float minDist = fmax(game.width, game.height);
         Vector drawPos;
         for(Direction dir = UP; dir <= RIGHT; dir++) {

@@ -3,7 +3,7 @@
 
 #define FPS 60
 #define MAX_FINGERS 32
-//#define DEBUG
+#define DEBUG 1
 
 #include "SDL.h"
 #include "vector.h"
